@@ -52,12 +52,24 @@ rm -f $seqres.full
 testfile="${TEST_DIR}/tst-tmpfile-flink"
 
 # test creating a r/w tmpfile, do I/O and link it into the namespace
-$XFS_IO_PROG -T \
+echo umask 022
+umask 022
+$XFS_IO_PROG -T -m 0666 \
 	-c "pwrite 0 4096" \
 	-c "pread 0 4096" \
 	-c "flink ${testfile}" \
 	${TEST_DIR} | _filter_xfs_io
+stat -c '%a' ${testfile}
+rm ${testfile}
 
+echo umask 027
+umask 027
+$XFS_IO_PROG -T -m 0666 \
+	-c "pwrite 0 4096" \
+	-c "pread 0 4096" \
+	-c "flink ${testfile}" \
+	${TEST_DIR} | _filter_xfs_io
+stat -c '%a' ${testfile}
 rm ${testfile}
 
 # test creating a r/o tmpfile.  Should fail
